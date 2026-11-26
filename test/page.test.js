@@ -1,17 +1,29 @@
-// Adapted from the course engine's INTROWEB m1a1 Vitest/jsdom checks.
-// See NOTICE for source attribution and license information.
+// Checks for M4A1: Mini Site Navigation. See NOTICE for source attribution and license information.
 import { describe, expect, it } from "vitest"
-import { existsSync, readFileSync } from "node:fs"
-import { dirname, resolve } from "node:path"
+import { existsSync, readFileSync, readdirSync } from "node:fs"
+import { dirname, relative, resolve, sep } from "node:path"
 import { fileURLToPath } from "node:url"
 import { JSDOM } from "jsdom"
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "src")
 const identity = JSON.parse(readFileSync(new URL("../student.json", import.meta.url), "utf8"))
 const PAGES = ["index.html", "pages/about.html", "pages/contact.html"]
+// True only when every folder and file name matches in exact letter case, so a page that passes
+// on a Mac or a Windows PC also passes on the Linux computer that grades it.
+const existsExact = (path) => {
+  if (!existsSync(path)) return false
+  const rel = relative(root, path)
+  if (rel.startsWith("..")) return true
+  let dir = root
+  for (const part of rel.split(sep).filter(Boolean)) {
+    if (!readdirSync(dir).includes(part)) return false
+    dir = resolve(dir, part)
+  }
+  return true
+}
 const load = (file) => {
   const path = resolve(root, file)
-  return existsSync(path) ? new JSDOM(readFileSync(path, "utf8")).window.document : null
+  return existsExact(path) ? new JSDOM(readFileSync(path, "utf8")).window.document : null
 }
 const docs = Object.fromEntries(PAGES.map((p) => [p, load(p)]))
 const isExternal = (href) => /^(https?:)?\/\//.test(href) || /^(mailto|tel):/.test(href)
@@ -21,7 +33,7 @@ const fileOf = (page, href) => resolve(root, dirname(page), href.split("#")[0].s
 describe("M4A1: Mini Site Navigation", () => {
   it("has all three pages in the right folders", () => {
     for (const p of PAGES) {
-      expect(existsSync(resolve(root, p)), `Create src/${p}.`).toBe(true)
+      expect(existsExact(resolve(root, p)), `Create src/${p}. File and folder names must match exactly, capital letters included.`).toBe(true)
     }
   })
 
@@ -54,7 +66,7 @@ describe("M4A1: Mini Site Navigation", () => {
       for (const a of links(docs[p])) {
         const href = a.getAttribute("href")
         if (isExternal(href) || href.startsWith("#")) continue
-        expect(existsSync(fileOf(p, href)), `${p}: the link "${href}" points at a file that does not exist. Check the ../ steps.`).toBe(true)
+        expect(existsExact(fileOf(p, href)), `${p}: the link "${href}" points at a file that does not exist. Check the ../ steps and the capital letters in the file name.`).toBe(true)
       }
     }
   })

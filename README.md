@@ -24,7 +24,8 @@ src/
     contact.html
 ```
 
-- Every page has the HTML5 skeleton from M2, a title and one `h1`.
+- Every page has the HTML5 skeleton from M2 with `lang="en"`, a title of at least four characters and one `h1`.
+- File and folder names must match the links exactly, capital letters included: a link to `about.html` does not reach `About.html` on the grading computer.
 - Every page has the same `nav` with links to all three pages. A link from a page in `pages/` to the home page needs `../` to step out of the folder.
 - The home page has a back-to-top link that jumps to an element in the same page with a matching `id`.
 - The home page has one link to another website, starting with `https://`. If you open it in a new tab, add `rel="noopener noreferrer"`.
